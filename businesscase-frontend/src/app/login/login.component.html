@@ -1,0 +1,15 @@
+<div class="login">
+  <h2>Connexion</h2>
+  <form (ngSubmit)="login()">
+    <div>
+      <label>Nom d'utilisateur</label>
+      <input name="username" [(ngModel)]="username" />
+    </div>
+    <div>
+      <label>Mot de passe</label>
+      <input type="password" name="password" [(ngModel)]="password" />
+    </div>
+    <div *ngIf="error" style="color:crimson">{{ error }}</div>
+    <button type="submit">Se connecter</button>
+  </form>
+</div>

@@ -74,8 +74,26 @@ Les propriétés de configuration sont dans `src/main/resources/application.prop
 
 ## Auteur
 
-- `fr.humanbooster.businesscasespring`
 
----
 
 Ce README est écrit en français pour décrire l'ensemble du projet et faciliter la prise en main.
+
+## Frontend (Angular)
+
+Un frontend Angular 19 minimal a été ajouté dans le dossier `businesscase-frontend`.
+
+Pour lancer le frontend en mode développement (proxy vers le backend Spring Boot sur `http://localhost:8080`):
+
+```bash
+cd businesscase-frontend
+npm install
+npm start -- --proxy-config proxy.conf.json
+```
+
+Le frontend contient:
+- un composant `Home` (page d'accueil)
+- un composant `Login` pour saisir nom d'utilisateur et mot de passe (stockés en mémoire côté client pour tests)
+- un `AuthService` et un `AuthInterceptor` pour joindre l'en-tête Basic Authorization aux requêtes HTTP
+- un fichier `proxy.conf.json` pour proxier `/api` vers le backend pendant le développement
+
+Note: pour des usages en production, remplacer l'authentification Basic en mémoire par une solution sécurisée (JWT, OAuth2, stockage persistant des utilisateurs), et déployer le frontend séparément.
