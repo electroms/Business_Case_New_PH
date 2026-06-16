@@ -26,7 +26,7 @@ L'application démarre à partir de la classe `BusinesscasespringApplication`.
 1. Cloner le dépôt :
 
 ```bash
-git clone git@github.com:electroms/Business_Case_New_PH.git
+git clone https://github.com/electroms/Business_Case_New_PH.git
 cd Business_Case_New_PH
 ```
 
