@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2007-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,9 +14,15 @@
  * limitations under the License.
  */
 // Commentaire: en-tête ajouté automatiquement par l'outil.
-import java.net.*;
-import java.io.*;
-import java.nio.channels.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.net.Authenticator;
+import java.net.PasswordAuthentication;
+import java.net.URL;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
 import java.util.Properties;
 
 public class MavenWrapperDownloader {
