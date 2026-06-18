@@ -67,7 +67,7 @@ Les propriétés de configuration sont dans `src/main/resources/application.prop
 ## Notes
 
 - Le projet est configuré pour Java 25 via `maven.compiler.release`.
-- La dépendance `mysql-connector-java` est déclarée en runtime pour la connexion MySQL.
+- La dépendance `com.mysql:mysql-connector-j` est déclarée en runtime pour la connexion MySQL (nouvelles coordonnées Maven officielles depuis MySQL 8.0.31, version gérée par le BOM Spring Boot).
 - La base de données H2 est utilisée uniquement pour les tests.
 - La sécurité Spring est activée avec authentification HTTP Basic, utilisateurs en mémoire et en-têtes HTTP renforcés.
 - Le mot de passe de l’utilisateur administrateur peut être configuré via la variable d’environnement `SECURITY_USER_PASSWORD`.
