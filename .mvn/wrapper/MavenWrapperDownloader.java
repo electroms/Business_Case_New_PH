@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// Commentaire: en-tête ajouté automatiquement par l'outil.
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
