@@ -4,7 +4,7 @@ Application Spring Boot Java pour le projet `businesscasespring`.
 
 ## Description
 
-Ce projet est une application Spring Boot basique écrite en Java 25. Il contient une configuration Maven pour Spring Boot 3.2.6 et des dépendances courantes pour :
+Ce projet est une application Spring Boot basique écrite en Java 25. Il contient une configuration Maven pour Spring Boot 3.5.15 et des dépendances courantes pour :
 
 - Spring Web
 - Spring Data JPA
