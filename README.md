@@ -30,7 +30,7 @@ git clone https://github.com/electroms/Business_Case_New_PH.git
 cd Business_Case_New_PH
 ```
 
-2. Construire le projet avec Maven :
+1. Construire le projet avec Maven :
 
 ```bash
 ./mvnw clean package
@@ -74,8 +74,6 @@ Les propriétés de configuration sont dans `src/main/resources/application.prop
 
 ## Auteur
 
-
-
 Ce README est écrit en français pour décrire l'ensemble du projet et faciliter la prise en main.
 
 ## Frontend (Angular)
@@ -91,6 +89,7 @@ npm start -- --proxy-config proxy.conf.json
 ```
 
 Le frontend contient:
+
 - un composant `Home` (page d'accueil)
 - un composant `Login` pour saisir nom d'utilisateur et mot de passe (stockés en mémoire côté client pour tests)
 - un `AuthService` et un `AuthInterceptor` pour joindre l'en-tête Basic Authorization aux requêtes HTTP

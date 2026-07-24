@@ -1,7 +1,3 @@
-/*
- * En-tête: commentaire ajouté automatiquement par l'outil.
- * Fichier: BusinesscasespringApplication.java
- */
 package fr.humanbooster.businesscasespring;
 
 import org.springframework.boot.SpringApplication;
