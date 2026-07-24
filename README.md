@@ -4,7 +4,7 @@ Application Spring Boot Java pour le projet `businesscasespring`.
 
 ## Description
 
-Ce projet est une application Spring Boot basique écrite en Java 25. Il contient une configuration Maven pour Spring Boot 3.5.15 et des dépendances courantes pour :
+Ce projet est une application Spring Boot basique écrite en Java 25. Il contient une configuration Maven pour Spring Boot 4.1.0 et des dépendances courantes pour :
 
 - Spring Web
 - Spring Data JPA
@@ -66,7 +66,7 @@ Les propriétés de configuration sont dans `src/main/resources/application.prop
 
 ## Notes
 
-- Le projet est configuré pour Java 25 via `maven.compiler.release`.
+- Le projet est configuré pour Java 25 via la propriété `java.version` dans le parent Spring Boot.
 - La dépendance `com.mysql:mysql-connector-j` est déclarée en runtime pour la connexion MySQL (nouvelles coordonnées Maven officielles depuis MySQL 8.0.31, version gérée par le BOM Spring Boot).
 - La base de données H2 est utilisée uniquement pour les tests.
 - La sécurité Spring est activée avec authentification HTTP Basic, utilisateurs en mémoire et en-têtes HTTP renforcés.
