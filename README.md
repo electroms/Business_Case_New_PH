@@ -5,6 +5,7 @@ Application full-stack Spring Boot + Angular pour le projet `businesscasespring`
 ## Description
 
 Ce projet est une application full-stack composée :
+
 - d'un **backend** Spring Boot 4.1.0 écrit en Java 25
 - d'un **frontend** Angular 22 avec authentification HTTP Basic et proxy vers le backend
 
