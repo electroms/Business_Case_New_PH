@@ -1,68 +1,135 @@
 # Business Case Spring
 
-Application full-stack Spring Boot + Angular pour le projet `businesscasespring`.
+A full-stack Spring Boot + Angular application for the Business Case project.
 
-## Description
+## Overview
 
-Ce projet est une application full-stack composée :
+This repository contains:
 
-- d'un **backend** Spring Boot 4.1.0 écrit en Java 25
-- d'un **frontend** Angular 22 avec authentification JWT/OAuth2 Resource Server et proxy vers le backend
+- a Java 25 backend built with Spring Boot 4.1.0
+- an Angular 22 frontend
+- JWT-based authentication using Spring Security and OAuth2 Resource Server
+- a persistent user identity stored in MySQL instead of in-memory storage
+- a strict production profile with required environment variables
 
-Le backend expose une API REST sécurisée avec Spring Security et JWT. Le frontend Angular communique avec ce backend via un proxy de développement.
-
-### Backend — dépendances principales
-
-- Spring Web
-- Spring Data JPA
-- Validation Spring
-- MySQL Connector
-- DevTools pour le développement
-- Tests avec Spring Boot Starter Test et H2 en mémoire
-
-### Frontend — stack technique
-
-- Angular 22.1.0 (standalone components, `provideRouter`)
-- TypeScript 6.0.3
-- RxJS 7.8.x
-- Zone.js 0.16.x
-- Tests unitaires avec **Vitest** (via `@angular/build:unit-test`)
-
-## Prérequis
-
-- Java 25
-- Maven (ou utilisation du wrapper `./mvnw`)
-- Node.js 22+ et npm 10+
-- MySQL si vous souhaitez exécuter l'application avec une base de données réelle
-
-## Installation
-
-1. Cloner le dépôt :
-
-   ```bash
-   git clone https://github.com/electroms/Business_Case_New_PH.git
-   cd Business_Case_New_PH
-   ```
-
-2. Construire le projet avec Maven :
-
-   ```bash
-   ./mvnw clean package
-   ```
-
-3. Installer les dépendances frontend :
-
-   ```bash
-   cd businesscase-frontend
-   npm install
-   ```
-
-## Exécution
+## Tech stack
 
 ### Backend
 
+- Java 25
+- Spring Boot 4.1.0
+- Spring Web
+- Spring Data JPA
+- Spring Validation
+- Spring Security
+- OAuth2 Resource Server
+- MySQL Connector J
+- H2 for test usage only
+
+### Frontend
+
+- Angular 22
+- TypeScript
+- RxJS
+- Standalone components
+- JWT auth interceptor for API requests
+
+## Prerequisites
+
+- Java 25
+- Maven Wrapper included: `./mvnw` or `./mvnw.cmd`
+- Node.js 22+
+- npm 10+
+- MySQL for the production profile
+
+## Installation
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/electroms/Business_Case_New_PH.git
+cd Business_Case_New_PH
+```
+
+### 2. Install backend dependencies
+
+```bash
+./mvnw clean package
+```
+
+### 3. Install frontend dependencies
+
+```bash
+cd businesscase-frontend
+npm install
+```
+
+## Configuration
+
+The project uses environment variables for sensitive runtime settings.
+
+### Main configuration files
+
+- [src/main/resources/application.properties](src/main/resources/application.properties)
+- [src/main/resources/application-prod.properties](src/main/resources/application-prod.properties)
+- [.env.example](.env.example)
+- [prod.env.example](prod.env.example)
+- [start-prod.ps1](start-prod.ps1)
+
+### Production environment example
+
+Copy the example file and replace placeholder values with real secrets:
+
+```bash
+copy .env.example .env
+```
+
+Example content:
+
+```dotenv
+SPRING_PROFILES_ACTIVE=prod
+SERVER_PORT=8080
+APP_ADMIN_USERNAME=prodadmin
+APP_ADMIN_PASSWORD=CHANGE_ME_STRONG_ADMIN_PASSWORD
+APP_ADMIN_ROLES=ROLE_ADMIN,ROLE_USER
+JWT_SECRET=CHANGE_ME_A_STRONG_SECRET_AT_LEAST_32_CHARS
+JWT_EXPIRATION_MS=3600000
+DB_URL=jdbc:mysql://localhost:3306/businesscase?useSSL=true&allowPublicKeyRetrieval=true&serverTimezone=UTC
+DB_USERNAME=businesscase_user
+DB_PASSWORD=CHANGE_ME_DB_PASSWORD
+DB_DRIVER_CLASS_NAME=com.mysql.cj.jdbc.Driver
+DDL_AUTO=update
+HIBERNATE_DIALECT=org.hibernate.dialect.MySQLDialect
+```
+
+> Secrets must never be committed directly to the repository.
+
+## Running the project
+
+### Backend in development mode
+
 ```bash
 ./mvnw spring-boot:run
+```
+
+On Windows PowerShell:
+
+```powershell
+./mvnw.cmd spring-boot:run
+```
+
+### Backend in production mode
+
+The PowerShell launcher loads values from `.env` and starts the app with the `prod` profile:
+
+```powershell
+./start-prod.ps1
+```
+
+You can also pass a profile explicitly:
+
+```powershell
+./start-prod.ps1 -SpringProfile prod
 ```
 
 ### Frontend
@@ -72,65 +139,73 @@ cd businesscase-frontend
 npm start
 ```
 
-Le frontend démarre sur `http://localhost:4200` et proxifie automatiquement les appels `/api/**` vers le backend Spring Boot sur `http://localhost:8080` (via `proxy.conf.json`).
+The Angular app runs on `http://localhost:4200` and proxies `/api/**` requests to the backend on `http://localhost:8080`.
 
-## Artifact généré
+## Authentication
 
-Le build Maven génère le JAR dans :
+The backend uses stateless JWT authentication with Spring Security.
 
-```text
-target/businesscasespring-0.0.1-SNAPSHOT.jar
-```
+### Key components
+
+- `SecurityConfig`: JWT resource server setup and stateless security configuration
+- `AuthController`: login endpoint and JWT issuance
+- `AppUser`: persisted user entity in JPA
+- `AppUserRepository`: repository for user lookup
+- `DatabaseUserDetailsService`: converts persisted users into Spring `UserDetails`
+- `AppUserInitializer`: ensures the admin user exists at startup
+
+### Authentication flow
+
+1. The user submits credentials to the backend.
+2. The backend validates the username and password.
+3. The backend issues a JWT signed with `JWT_SECRET`.
+4. The frontend stores the token and sends it in the `Authorization: Bearer ...` header.
 
 ## Tests
 
-### Tests backend
+### Backend tests
 
 ```bash
 ./mvnw test
 ```
 
-### Tests frontend (Vitest)
+### Frontend tests
 
 ```bash
 cd businesscase-frontend
 npm test
 ```
 
-Les tests frontend utilisent `@angular/build:unit-test` avec **Vitest** et l'environnement DOM **happy-dom**.
+## Production hardening
 
-## Configuration
+The project has been prepared for a safer production setup:
 
-Les propriétés de configuration backend sont dans `src/main/resources/application.properties`.
+- user identities stored in the database instead of memory
+- secrets externalized through environment variables
+- stricter `prod` configuration with MySQL JDBC settings
+- required `JWT_SECRET`
+- cleaner production logging
+- disabled stack traces in production HTTP error responses
+- no hardcoded sensitive credentials in default config files
 
-Pour une exécution avec MySQL, ajouter les propriétés suivantes (à ne pas committer avec des identifiants réels) :
+## Notes and precautions
 
-```properties
-spring.datasource.url=jdbc:mysql://localhost:3306/businesscase?useSSL=false&serverTimezone=UTC
-spring.datasource.username=<db_user>
-spring.datasource.password=<db_password>
-spring.jpa.hibernate.ddl-auto=update
-```
+- H2 is reserved for test execution only.
+- In production, `DB_*` variables must be set and MySQL must be reachable.
+- The `.env` file must stay local and should not be committed to source control.
+- For real deployment, consider using a secret manager such as Azure Key Vault, Vault, or Docker secrets.
 
-Les identifiants par défaut de l'API sont `admin` / `ChangeMe123!` (modifiable via la variable d'environnement `SECURITY_USER_PASSWORD`).
+## Current project status
 
-## Notes
+The project is in a working state with:
 
-- Le projet est configuré pour Java 25 via la propriété `java.version` dans le parent Spring Boot.
-- La dépendance `com.mysql:mysql-connector-j` est déclarée en runtime (coordonnées Maven officielles depuis MySQL 8.0.31, version gérée par le BOM Spring Boot).
-- La base de données H2 est utilisée uniquement pour les tests (voir `src/test/resources/application.properties`).
-- La sécurité Spring est activée avec JWT via OAuth2 Resource Server, stockage d’utilisateurs en base de données et en-têtes HTTP renforcés. Le CSRF est désactivé pour permettre les appels API sans session.
-- Le frontend Angular utilise le builder `@angular/build:unit-test` avec Vitest (runner par défaut d'Angular 22) en remplacement de Karma (déprécié).
+- modern JWT security
+- production-ready environment configuration
+- a production startup script
+- a Java 25 / Spring Boot 4.1.0 backend
+- an Angular 22 frontend
 
-## Auteur
+## Author
 
-Ce README est écrit en français pour décrire l'ensemble du projet et faciliter la prise en main.
+Project maintained for the Business Case application.
 
-Le frontend contient:
-
-- un composant `Home` (page d'accueil)
-- un composant `Login` pour saisir nom d'utilisateur et mot de passe
-- un `AuthService` et un `AuthInterceptor` pour joindre le jeton JWT au format Bearer aux requêtes HTTP
-- un fichier `proxy.conf.json` pour proxier `/api` vers le backend pendant le développement
-
-Note: pour des usages en production, externaliser correctement les secrets et utiliser un stockage d’utilisateurs persisté ou un fournisseur d’identité externe.
