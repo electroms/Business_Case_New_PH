@@ -23,7 +23,10 @@ export class LoginComponent {
       this.error = 'Veuillez renseigner nom d\'utilisateur et mot de passe.';
       return;
     }
-    this.auth.setCredentials(this.username, this.password);
-    this.router.navigate(['/']);
+
+    this.auth.login(this.username, this.password).subscribe({
+      next: () => this.router.navigate(['/']),
+      error: () => this.error = 'Identifiants invalides ou serveur inaccessible.'
+    });
   }
 }

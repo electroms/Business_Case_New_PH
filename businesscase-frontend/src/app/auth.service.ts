@@ -1,26 +1,42 @@
 import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable, tap } from 'rxjs';
+
+interface TokenResponse {
+  accessToken: string;
+  tokenType: string;
+  expiresIn: number;
+}
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private username = '';
-  private password = '';
+  private readonly tokenKey = 'businesscase.accessToken';
+  private token = '';
 
-  setCredentials(username: string, password: string) {
-    this.username = username;
-    this.password = password;
+  constructor(private http: HttpClient) {
+    this.token = sessionStorage.getItem(this.tokenKey) ?? '';
+  }
+
+  login(username: string, password: string): Observable<TokenResponse> {
+    return this.http.post<TokenResponse>('/api/auth/login', { username, password }).pipe(
+      tap(response => {
+        this.token = response.accessToken;
+        sessionStorage.setItem(this.tokenKey, response.accessToken);
+      })
+    );
   }
 
   clearCredentials() {
-    this.username = '';
-    this.password = '';
+    this.token = '';
+    sessionStorage.removeItem(this.tokenKey);
   }
 
   getAuthorizationHeader(): string | null {
-    if (!this.username || !this.password) return null;
-    return 'Basic ' + btoa(`${this.username}:${this.password}`);
+    if (!this.token) return null;
+    return `Bearer ${this.token}`;
   }
 
   isAuthenticated(): boolean {
-    return !!this.username && !!this.password;
+    return !!this.token;
   }
 }
