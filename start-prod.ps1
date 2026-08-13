@@ -1,5 +1,5 @@
 param(
-    [string]$Profile = "prod",
+    [string]$SpringProfile = "prod",
     [string]$EnvFile = ".env"
 )
 
@@ -19,7 +19,7 @@ if (Test-Path $EnvFile) {
     }
 }
 
-$env:SPRING_PROFILES_ACTIVE = $Profile
+$env:SPRING_PROFILES_ACTIVE = $SpringProfile
 if (-not $env:SERVER_PORT) { $env:SERVER_PORT = "8080" }
 if (-not $env:APP_ADMIN_USERNAME) { $env:APP_ADMIN_USERNAME = "prodadmin" }
 if (-not $env:APP_ADMIN_PASSWORD) { $env:APP_ADMIN_PASSWORD = "CHANGE_ME_STRONG_ADMIN_PASSWORD" }
