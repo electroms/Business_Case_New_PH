@@ -17,8 +17,8 @@ public class AppUserInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        String username = System.getenv().getOrDefault("APP_ADMIN_USERNAME", "prodadmin");
-        String password = System.getenv().getOrDefault("APP_ADMIN_PASSWORD", "ChangeMeStrongPassword123!");
+        String username = requireEnv("APP_ADMIN_USERNAME");
+        String password = requireEnv("APP_ADMIN_PASSWORD");
         String roles = System.getenv().getOrDefault("APP_ADMIN_ROLES", "ROLE_ADMIN,ROLE_USER");
 
         appUserRepository.findByUsername(username).ifPresentOrElse(
@@ -37,5 +37,13 @@ public class AppUserInitializer implements CommandLineRunner {
                 appUserRepository.save(user);
             }
         );
+    }
+
+    private String requireEnv(String key) {
+        String value = System.getenv(key);
+        if (value == null || value.isBlank()) {
+            throw new IllegalStateException("Missing required environment variable: " + key);
+        }
+        return value;
     }
 }

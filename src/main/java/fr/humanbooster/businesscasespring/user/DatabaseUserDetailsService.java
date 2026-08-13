@@ -43,9 +43,9 @@ public class DatabaseUserDetailsService implements UserDetailsService {
         }
 
         return Arrays.stream(roles.split(","))
-            .map(String::trim)
+            .map((String role) -> role.trim())
             .filter(role -> !role.isEmpty())
-            .map(role -> role.startsWith("ROLE_") ? role : "ROLE_" + role)
+            .map((String role) -> role.startsWith("ROLE_") ? role : "ROLE_" + role)
             .toArray(String[]::new);
     }
 }
