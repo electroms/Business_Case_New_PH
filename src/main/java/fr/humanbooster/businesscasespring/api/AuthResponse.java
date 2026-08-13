@@ -1,4 +1,4 @@
- code package fr.humanbooster.businesscasespring.api;
+package fr.humanbooster.businesscasespring.api;
 
 public record AuthResponse(String accessToken, String tokenType, long expiresIn) {
 }

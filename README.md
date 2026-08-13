@@ -7,9 +7,9 @@ Application full-stack Spring Boot + Angular pour le projet `businesscasespring`
 Ce projet est une application full-stack composée :
 
 - d'un **backend** Spring Boot 4.1.0 écrit en Java 25
-- d'un **frontend** Angular 22 avec authentification HTTP Basic et proxy vers le backend
+- d'un **frontend** Angular 22 avec authentification JWT/OAuth2 Resource Server et proxy vers le backend
 
-Le backend expose une API REST sécurisée (Spring Security, HTTP Basic). Le frontend Angular communique avec ce backend via un proxy de développement.
+Le backend expose une API REST sécurisée avec Spring Security et JWT. Le frontend Angular communique avec ce backend via un proxy de développement.
 
 ### Backend — dépendances principales
 
@@ -119,7 +119,7 @@ Les identifiants par défaut de l'API sont `admin` / `ChangeMe123!` (modifiable 
 - Le projet est configuré pour Java 25 via la propriété `java.version` dans le parent Spring Boot.
 - La dépendance `com.mysql:mysql-connector-j` est déclarée en runtime (coordonnées Maven officielles depuis MySQL 8.0.31, version gérée par le BOM Spring Boot).
 - La base de données H2 est utilisée uniquement pour les tests (voir `src/test/resources/application.properties`).
-- La sécurité Spring est activée avec authentification HTTP Basic, utilisateurs en mémoire et en-têtes HTTP renforcés. Le CSRF est désactivé pour permettre les appels API sans session.
+- La sécurité Spring est activée avec JWT via OAuth2 Resource Server, stockage d’utilisateurs en base de données et en-têtes HTTP renforcés. Le CSRF est désactivé pour permettre les appels API sans session.
 - Le frontend Angular utilise le builder `@angular/build:unit-test` avec Vitest (runner par défaut d'Angular 22) en remplacement de Karma (déprécié).
 
 ## Auteur
@@ -129,8 +129,8 @@ Ce README est écrit en français pour décrire l'ensemble du projet et facilite
 Le frontend contient:
 
 - un composant `Home` (page d'accueil)
-- un composant `Login` pour saisir nom d'utilisateur et mot de passe (stockés en mémoire côté client pour tests)
-- un `AuthService` et un `AuthInterceptor` pour joindre l'en-tête Basic Authorization aux requêtes HTTP
+- un composant `Login` pour saisir nom d'utilisateur et mot de passe
+- un `AuthService` et un `AuthInterceptor` pour joindre le jeton JWT au format Bearer aux requêtes HTTP
 - un fichier `proxy.conf.json` pour proxier `/api` vers le backend pendant le développement
 
-Note: pour des usages en production, remplacer l'authentification Basic en mémoire par une solution sécurisée (JWT, OAuth2, stockage persistant des utilisateurs), et déployer le frontend séparément.
+Note: pour des usages en production, externaliser correctement les secrets et utiliser un stockage d’utilisateurs persisté ou un fournisseur d’identité externe.

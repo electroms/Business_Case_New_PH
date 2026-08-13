@@ -8,6 +8,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
@@ -24,9 +25,7 @@ public class DatabaseUserDetailsService implements UserDetailsService {
         AppUser appUser = appUserRepository.findByUsername(username)
             .orElseThrow(() -> new UsernameNotFoundException("Utilisateur introuvable : " + username));
 
-        var authorities = Arrays.stream(appUser.getRoles().split(","))
-            .map(String::trim)
-            .filter(role -> !role.isEmpty())
+        List<SimpleGrantedAuthority> authorities = Arrays.stream(normalizeRoles(appUser.getRoles()))
             .map(SimpleGrantedAuthority::new)
             .collect(Collectors.toList());
 
@@ -36,5 +35,17 @@ public class DatabaseUserDetailsService implements UserDetailsService {
             .accountLocked(!appUser.isEnabled())
             .disabled(!appUser.isEnabled())
             .build();
+    }
+
+    private String[] normalizeRoles(String roles) {
+        if (roles == null || roles.isBlank()) {
+            return new String[] { "ROLE_USER" };
+        }
+
+        return Arrays.stream(roles.split(","))
+            .map(String::trim)
+            .filter(role -> !role.isEmpty())
+            .map(role -> role.startsWith("ROLE_") ? role : "ROLE_" + role)
+            .toArray(String[]::new);
     }
 }
