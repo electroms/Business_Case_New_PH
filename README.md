@@ -132,7 +132,7 @@ You can also pass a profile explicitly:
 ./start-prod.ps1 -SpringProfile prod
 ```
 
-### Frontend
+### Frontend in development mode
 
 ```bash
 cd businesscase-frontend
@@ -208,4 +208,3 @@ The project is in a working state with:
 ## Author
 
 Project maintained for the Business Case application.
-
