@@ -72,37 +72,44 @@ The project uses environment variables for sensitive runtime settings.
 
 - [src/main/resources/application.properties](src/main/resources/application.properties)
 - [src/main/resources/application-prod.properties](src/main/resources/application-prod.properties)
-- [.env.example](.env.example)
 - [prod.env.example](prod.env.example)
+- [.env](.env)
 - [start-prod.ps1](start-prod.ps1)
 
-### Production environment example
+### Production environment variables
 
-Copy the example file and replace placeholder values with real secrets:
-
-```bash
-copy .env.example .env
-```
-
-Example content:
+Create a local file named [.env](.env) at the project root and fill it with real production values. This file is ignored by Git and must never be committed.
 
 ```dotenv
 SPRING_PROFILES_ACTIVE=prod
 SERVER_PORT=8080
+
 APP_ADMIN_USERNAME=prodadmin
 APP_ADMIN_PASSWORD=CHANGE_ME_STRONG_ADMIN_PASSWORD
 APP_ADMIN_ROLES=ROLE_ADMIN,ROLE_USER
+
 JWT_SECRET=CHANGE_ME_A_STRONG_SECRET_AT_LEAST_32_CHARS
 JWT_EXPIRATION_MS=3600000
-DB_URL=jdbc:mysql://localhost:3306/businesscase?useSSL=true&allowPublicKeyRetrieval=true&serverTimezone=UTC
+APP_CORS_ALLOWED_ORIGINS=https://your-domain.example
+
+DB_URL=jdbc:mysql://localhost:3306/businesscase?useSSL=true&allowPublicKeyRetrieval=true&serverTimezone=UTC&connectTimeout=20000
 DB_USERNAME=businesscase_user
 DB_PASSWORD=CHANGE_ME_DB_PASSWORD
 DB_DRIVER_CLASS_NAME=com.mysql.cj.jdbc.Driver
+
 DDL_AUTO=update
 HIBERNATE_DIALECT=org.hibernate.dialect.MySQLDialect
 ```
 
-> Secrets must never be committed directly to the repository.
+Required production rules:
+
+- `JWT_SECRET` must be at least 32 characters and generated from a secure random source.
+- `APP_ADMIN_PASSWORD` and `DB_PASSWORD` must be strong, unique, and stored in a real secret manager in production.
+- `APP_CORS_ALLOWED_ORIGINS` must list the allowed frontend origins exactly, without wildcards in production.
+- `DB_URL`, `DB_USERNAME`, and `DB_PASSWORD` must point to the real MySQL production instance.
+- Leave [.env](.env) local-only; use Azure Key Vault, Vault, or another secret manager in a real deployment.
+
+> The repository includes [prod.env.example](prod.env.example) as a template, but the real values must live only in the local [.env](.env) file.
 
 ## Running the project
 
@@ -183,10 +190,13 @@ The project has been prepared for a safer production setup:
 - user identities stored in the database instead of memory
 - secrets externalized through environment variables
 - stricter `prod` configuration with MySQL JDBC settings
-- required `JWT_SECRET`
+- required `JWT_SECRET` with minimum length validation
+- explicit CORS configuration for production origins
+- HTTP security headers hardened with HSTS and referrer policy restrictions
 - cleaner production logging
 - disabled stack traces in production HTTP error responses
 - no hardcoded sensitive credentials in default config files
+- local environment files protected by Git ignore rules
 
 ## Notes and precautions
 

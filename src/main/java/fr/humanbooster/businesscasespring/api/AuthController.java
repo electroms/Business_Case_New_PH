@@ -15,12 +15,23 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.time.Instant;
 
+/**
+ * Exposes the authentication endpoint used by the Angular frontend.
+ *
+ * The login endpoint validates the supplied credentials and returns a JWT signed with the
+ * application's configured secret and expiration time.
+ */
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
 
+    // Spring Security component in charge of checking the submitted username/password pair.
     private final AuthenticationManager authenticationManager;
+
+    // JWT generator used to issue signed access tokens after a successful login.
     private final JwtEncoder jwtEncoder;
+
+    // Lifetime of the token in milliseconds. This value is usually controlled by the environment.
     private final long expirationMs;
 
     public AuthController(AuthenticationManager authenticationManager,
@@ -31,6 +42,12 @@ public class AuthController {
         this.expirationMs = expirationMs;
     }
 
+    /**
+     * Authenticates the user and returns a signed JWT that can be used in subsequent requests.
+     *
+     * The login flow validates the credentials through Spring Security, then builds a token containing the
+     * subject and role claims. This token is then sent back to the frontend for use on protected API routes.
+     */
     @PostMapping("/login")
     public AuthResponse login(@RequestBody LoginRequest request) {
         try {

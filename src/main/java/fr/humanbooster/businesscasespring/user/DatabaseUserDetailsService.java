@@ -11,6 +11,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Loads persisted application users from the database and converts them to Spring Security UserDetails.
+ * This centralizes authentication and role mapping while keeping the user table as the source of truth.
+ */
 @Service
 public class DatabaseUserDetailsService implements UserDetailsService {
 
@@ -22,6 +26,7 @@ public class DatabaseUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        // The database is the source of truth for users. Spring Security only needs a UserDetails object.
         AppUser appUser = appUserRepository.findByUsername(username)
             .orElseThrow(() -> new UsernameNotFoundException("Utilisateur introuvable : " + username));
 
@@ -37,6 +42,12 @@ public class DatabaseUserDetailsService implements UserDetailsService {
             .build();
     }
 
+    /**
+     * Normalizes user roles before they are attached to Spring Security authorities.
+     *
+     * Some records may store values like "ADMIN" or "ROLE_ADMIN". This method guarantees a consistent format
+     * so the role checks in @PreAuthorize and security expressions remain predictable.
+     */
     private String[] normalizeRoles(String roles) {
         if (roles == null || roles.isBlank()) {
             return new String[] { "ROLE_USER" };
