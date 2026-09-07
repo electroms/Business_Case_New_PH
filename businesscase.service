@@ -1,8 +1,8 @@
 [Unit]
 Description=Business Case Spring Boot application
-After=network.target mysql.service
+Documentation=https://github.com/electroms/Business_Case_New_PH
+After=network-online.target mysql.service
 Wants=network-online.target
-After=network-online.target
 
 [Service]
 Type=simple

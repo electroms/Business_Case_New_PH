@@ -153,6 +153,148 @@ You can also pass a profile explicitly:
 SPRING_PROFILE=prod ./start-prod.sh
 ```
 
+## Production server mode on Debian
+
+This project is designed to run on a Debian Linux server using a standard systemd service. The following procedure is the recommended setup for production.
+
+### 1. Install Java 21 and required packages
+
+```bash
+sudo apt update
+sudo apt install -y openjdk-21-jdk-headless curl unzip git mysql-server nginx
+```
+
+If you use MySQL locally on the same server, make sure the database is started and the user is configured:
+
+```bash
+sudo systemctl enable --now mysql
+```
+
+### 2. Create the application directory
+
+```bash
+sudo mkdir -p /opt/businesscase
+sudo chown -R www-data:www-data /opt/businesscase
+```
+
+Then copy the project files into `/opt/businesscase`.
+
+### 3. Create a secure `.env` file
+
+Create `/opt/businesscase/.env` with production values only:
+
+```dotenv
+SPRING_PROFILES_ACTIVE=prod
+SERVER_PORT=8080
+
+APP_ADMIN_USERNAME=prodadmin
+APP_ADMIN_PASSWORD=CHANGE_ME_STRONG_ADMIN_PASSWORD
+APP_ADMIN_ROLES=ROLE_ADMIN,ROLE_USER
+
+JWT_SECRET=CHANGE_ME_A_STRONG_SECRET_AT_LEAST_32_CHARS
+JWT_EXPIRATION_MS=3600000
+APP_CORS_ALLOWED_ORIGINS=https://app.example.com
+
+DB_URL=jdbc:mysql://localhost:3306/businesscase?useSSL=true&allowPublicKeyRetrieval=true&serverTimezone=UTC&connectTimeout=20000
+DB_USERNAME=businesscase_user
+DB_PASSWORD=CHANGE_ME_DB_PASSWORD
+DB_DRIVER_CLASS_NAME=com.mysql.cj.jdbc.Driver
+
+DDL_AUTO=update
+HIBERNATE_DIALECT=org.hibernate.dialect.MySQLDialect
+```
+
+Important rules:
+
+- `JWT_SECRET` must be at least 32 characters long
+- `APP_ADMIN_PASSWORD` and `DB_PASSWORD` must be strong and secret
+- never commit a real `.env` to Git
+- prefer a real secret manager such as Vault, Azure Key Vault, or an equivalent solution in production
+
+### 4. Install the systemd service
+
+```bash
+sudo cp businesscase.service /etc/systemd/system/businesscase.service
+sudo systemctl daemon-reload
+sudo systemctl enable businesscase
+```
+
+Then start the service:
+
+```bash
+sudo systemctl start businesscase
+sudo systemctl status businesscase
+```
+
+To watch logs:
+
+```bash
+sudo journalctl -u businesscase -f
+```
+
+### 5. Configure a reverse proxy with nginx
+
+A common Debian production pattern is to put nginx in front of the Spring Boot app.
+
+Example `/etc/nginx/sites-available/businesscase`:
+
+```nginx
+server {
+    listen 80;
+    server_name app.example.com;
+
+    location / {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+    }
+}
+```
+
+Activate it:
+
+```bash
+sudo ln -s /etc/nginx/sites-available/businesscase /etc/nginx/sites-enabled/
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
+### 6. Security hardening for Debian
+
+Recommended production hygiene:
+
+- run the app as a dedicated system user, not as `root`
+- keep `MYSQL` and the application on the same private network when possible
+- restrict firewall access to ports 22, 80, and 443 only
+- use TLS certificates through Let’s Encrypt or a corporate PKI
+- keep the JVM and OS packages updated regularly
+- store secrets outside the repository, ideally in a secure vault or managed secret store
+
+### 7. Production health check
+
+Once the service is running, verify that the app responds correctly:
+
+```bash
+curl -i http://127.0.0.1:8080/actuator/health
+```
+
+If `spring-boot-starter-actuator` is not enabled in the project, use a direct API route or check the Spring Boot logs instead.
+
+### 8. Updating the deployment
+
+When you deploy a new version:
+
+```bash
+cd /opt/businesscase
+git pull
+./mvnw clean package
+sudo systemctl restart businesscase
+```
+
 For a server deployment, a systemd unit is provided at [businesscase.service](businesscase.service). Install it with:
 
 ```bash
@@ -160,6 +302,150 @@ sudo cp businesscase.service /etc/systemd/system/businesscase.service
 sudo systemctl daemon-reload
 sudo systemctl enable --now businesscase
 ```
+
+## Debian production
+
+This section is focused only on the server-side system service setup for Debian. It describes a production-ready configuration using a systemd service, Nginx as a reverse proxy, and TLS termination.
+
+### 1. Service installation details
+
+The application is expected to run in `/opt/businesscase` with the `.env` file located at `/opt/businesscase/.env` and the launcher at `/opt/businesscase/start-prod.sh`.
+
+Example service file:
+
+```ini
+[Unit]
+Description=Business Case Spring Boot application
+After=network.target mysql.service
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/businesscase
+EnvironmentFile=/opt/businesscase/.env
+Environment=SPRING_PROFILES_ACTIVE=prod
+Environment=SERVER_PORT=8080
+ExecStart=/usr/bin/bash /opt/businesscase/start-prod.sh
+Restart=on-failure
+RestartSec=10
+LimitNOFILE=65536
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/opt/businesscase
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Install it with:
+
+```bash
+sudo cp businesscase.service /etc/systemd/system/businesscase.service
+sudo systemctl daemon-reload
+sudo systemctl enable --now businesscase
+sudo systemctl status businesscase
+```
+
+### 2. Nginx reverse proxy configuration
+
+Create the site configuration:
+
+```bash
+sudo nano /etc/nginx/sites-available/businesscase
+```
+
+Example file:
+
+```nginx
+server {
+    listen 80;
+    listen [::]:80;
+    server_name app.example.com;
+
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name app.example.com;
+
+    ssl_certificate /etc/letsencrypt/live/app.example.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/app.example.com/privkey.pem;
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 10m;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_prefer_server_ciphers on;
+
+    location / {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto https;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Port 443;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+    }
+}
+```
+
+Activate the site:
+
+```bash
+sudo ln -s /etc/nginx/sites-available/businesscase /etc/nginx/sites-enabled/
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
+### 3. TLS certificates with Let’s Encrypt
+
+On Debian, install certbot and request a certificate:
+
+```bash
+sudo apt install -y certbot python3-certbot-nginx
+sudo certbot --nginx -d app.example.com
+```
+
+This creates the certificate and updates the nginx configuration automatically.
+
+### 4. Firewall rules
+
+A typical Debian production rule set:
+
+```bash
+sudo ufw allow OpenSSH
+sudo ufw allow 'Nginx Full'
+sudo ufw enable
+```
+
+This allows inbound HTTPS and lets SSH remain available.
+
+### 5. Monitoring and logs
+
+Check application health and service state:
+
+```bash
+sudo systemctl status businesscase
+sudo journalctl -u businesscase -f
+sudo nginx -t
+```
+
+### 6. Recommended production checklist
+
+- run the app as `www-data` or a dedicated service account
+- keep the app and database on the same protected network
+- use TLS termination at nginx or a reverse proxy
+- keep `JAVA_HOME` and Debian packages up to date
+- store secrets in a vault or managed secret store
+- do not expose raw Spring Boot port 8080 directly to the internet
+- keep a regular backup strategy for MySQL and uploaded data
 
 ### Frontend in development mode
 
