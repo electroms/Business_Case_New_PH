@@ -1,0 +1,26 @@
+[Unit]
+Description=Business Case Spring Boot application
+After=network.target mysql.service
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/businesscase
+EnvironmentFile=/opt/businesscase/.env
+Environment=SPRING_PROFILES_ACTIVE=prod
+Environment=SERVER_PORT=8080
+ExecStart=/usr/bin/bash /opt/businesscase/start-prod.sh
+Restart=on-failure
+RestartSec=10
+LimitNOFILE=65536
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/opt/businesscase
+
+[Install]
+WantedBy=multi-user.target

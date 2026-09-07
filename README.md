@@ -6,18 +6,19 @@ A full-stack Spring Boot + Angular application for the Business Case project.
 
 This repository contains:
 
-- a Java 25 backend built with Spring Boot 4.1.0
+- a Java 21 backend built with Spring Boot 3.5.x
 - an Angular 22 frontend
 - JWT-based authentication using Spring Security and OAuth2 Resource Server
 - a persistent user identity stored in MySQL instead of in-memory storage
 - a strict production profile with required environment variables
+- a Debian Linux server deployment profile for production environments
 
 ## Tech stack
 
 ### Backend
 
-- Java 25
-- Spring Boot 4.1.0
+- Java 21 LTS
+- Spring Boot 3.5.x
 - Spring Web
 - Spring Data JPA
 - Spring Validation
@@ -36,11 +37,12 @@ This repository contains:
 
 ## Prerequisites
 
-- Java 25
+- OpenJDK 21 LTS (recommended on Debian 12/13)
 - Maven Wrapper included: `./mvnw` or `./mvnw.cmd`
 - Node.js 22+
 - npm 10+
 - MySQL for the production profile
+- Debian Linux server ready for systemd service deployment
 
 ## Installation
 
@@ -52,6 +54,15 @@ cd Business_Case_New_PH
 ```
 
 ### 2. Install backend dependencies
+
+On a Debian server, ensure Java 21 is installed:
+
+```bash
+sudo apt update
+sudo apt install -y openjdk-21-jdk-headless
+```
+
+Then build the backend:
 
 ```bash
 ./mvnw clean package
@@ -74,7 +85,9 @@ The project uses environment variables for sensitive runtime settings.
 - [src/main/resources/application-prod.properties](src/main/resources/application-prod.properties)
 - [prod.env.example](prod.env.example)
 - [.env](.env)
+- [start-prod.sh](start-prod.sh)
 - [start-prod.ps1](start-prod.ps1)
+- [businesscase.service](businesscase.service)
 
 ### Production environment variables
 
@@ -127,16 +140,25 @@ On Windows PowerShell:
 
 ### Backend in production mode
 
-The PowerShell launcher loads values from `.env` and starts the app with the `prod` profile:
+On Debian Linux, use the bash launcher or a systemd service.
 
-```powershell
-./start-prod.ps1
+```bash
+chmod +x ./mvnw ./start-prod.sh
+./start-prod.sh
 ```
 
 You can also pass a profile explicitly:
 
-```powershell
-./start-prod.ps1 -SpringProfile prod
+```bash
+SPRING_PROFILE=prod ./start-prod.sh
+```
+
+For a server deployment, a systemd unit is provided at [businesscase.service](businesscase.service). Install it with:
+
+```bash
+sudo cp businesscase.service /etc/systemd/system/businesscase.service
+sudo systemctl daemon-reload
+sudo systemctl enable --now businesscase
 ```
 
 ### Frontend in development mode
@@ -207,12 +229,12 @@ The project has been prepared for a safer production setup:
 
 ## Current project status
 
-The project is in a working state with:
+The project is adapted for a Debian Linux server environment with:
 
-- modern JWT security
-- production-ready environment configuration
-- a production startup script
-- a Java 25 / Spring Boot 4.1.0 backend
+- a Java 21 / Spring Boot 3.5.x backend compatible with Debian 12/13
+- a production-ready environment configuration
+- a Linux startup script and systemd service
+- a hardened production profile
 - an Angular 22 frontend
 
 ## Author
