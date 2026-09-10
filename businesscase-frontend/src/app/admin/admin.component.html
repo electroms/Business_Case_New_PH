@@ -1,0 +1,76 @@
+<section class="admin-shell">
+  <div class="page-header">
+    <div>
+      <p class="eyebrow">Administration</p>
+      <h2>Gestion des utilisateurs</h2>
+    </div>
+    <button type="button" class="secondary" (click)="loadUsers()">Actualiser</button>
+  </div>
+
+  <div class="alert error" *ngIf="error">{{ error }}</div>
+  <div class="alert success" *ngIf="success">{{ success }}</div>
+
+  <div class="admin-grid">
+    <form class="panel form-panel" (ngSubmit)="createUser()">
+      <h3>Créer un utilisateur</h3>
+
+      <label>
+        Nom d'utilisateur
+        <input type="text" [(ngModel)]="form.username" name="username" required />
+      </label>
+
+      <label>
+        Mot de passe
+        <input type="password" [(ngModel)]="form.password" name="password" required />
+      </label>
+
+      <label>
+        Rôle
+        <select [(ngModel)]="form.roles" name="roles">
+          <option value="ROLE_USER">Utilisateur</option>
+          <option value="ROLE_ADMIN">Administrateur</option>
+        </select>
+      </label>
+
+      <label class="checkbox-row">
+        <input type="checkbox" [(ngModel)]="form.enabled" name="enabled" />
+        Compte activé
+      </label>
+
+      <button type="submit" class="primary">Créer</button>
+    </form>
+
+    <div class="panel list-panel">
+      <h3>Utilisateurs</h3>
+
+      <div *ngIf="users.length === 0" class="empty-state">
+        Aucun utilisateur à afficher.
+      </div>
+
+      <table *ngIf="users.length > 0">
+        <thead>
+          <tr>
+            <th>Nom</th>
+            <th>Rôle</th>
+            <th>Statut</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let user of users">
+            <td>{{ user.username }}</td>
+            <td>{{ user.roles }}</td>
+            <td>
+              <span [class.enabled]="user.enabled" [class.disabled]="!user.enabled">
+                {{ user.enabled ? 'Actif' : 'Inactif' }}
+              </span>
+            </td>
+            <td>
+              <button type="button" class="danger" (click)="deleteUser(user)">Supprimer</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>

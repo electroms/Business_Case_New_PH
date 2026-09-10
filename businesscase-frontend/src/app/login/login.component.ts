@@ -4,6 +4,10 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../auth.service';
 
+/**
+ * Login form for authenticating a user against the API.
+ * On success, the backend returns a JWT that is stored and later used for protected requests.
+ */
 @Component({
   selector: 'app-login',
   standalone: true,

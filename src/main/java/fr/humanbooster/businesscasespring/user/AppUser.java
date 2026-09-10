@@ -7,6 +7,13 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
+/**
+ * Entité JPA représentant un utilisateur applicatif.
+ *
+ * Un utilisateur est identifié par son nom d'utilisateur, son mot de passe hashé,
+ * ses rôles et un flag d'activation. Cette entité sert de base de données pour la
+ * couche de sécurité Spring ainsi que pour l'administration des comptes.
+ */
 @Entity
 @Table(name = "app_users")
 public class AppUser {

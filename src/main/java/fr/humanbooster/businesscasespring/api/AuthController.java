@@ -21,6 +21,13 @@ import java.time.Instant;
  * The login endpoint validates the supplied credentials and returns a JWT signed with the
  * application's configured secret and expiration time.
  */
+/**
+ * Contrôleur d'authentification.
+ *
+ * Ce point d'entrée est appelé par le frontend lors d'une tentative de connexion.
+ * Il valide les identifiants avec Spring Security puis retourne un JWT pour les
+ * appels API suivants.
+ */
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {

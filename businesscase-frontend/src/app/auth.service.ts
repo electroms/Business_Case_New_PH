@@ -8,6 +8,12 @@ interface TokenResponse {
   expiresIn: number;
 }
 
+/**
+ * Centralizes authentication state in the browser.
+ *
+ * This service keeps the JWT in sessionStorage, exposes the decoded roles,
+ * and provides helper methods used by guards and authenticated pages.
+ */
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly tokenKey = 'businesscase.accessToken';
@@ -36,7 +42,26 @@ export class AuthService {
     return `Bearer ${this.token}`;
   }
 
+  getRoles(): string[] {
+    if (!this.token) {
+      return [];
+    }
+
+    try {
+      const payload = this.token.split('.')[1];
+      const decoded = JSON.parse(atob(payload));
+      const roles = decoded.roles ?? [];
+      return Array.isArray(roles) ? roles : [roles];
+    } catch {
+      return [];
+    }
+  }
+
   isAuthenticated(): boolean {
     return !!this.token;
+  }
+
+  isAdmin(): boolean {
+    return this.getRoles().includes('ROLE_ADMIN');
   }
 }

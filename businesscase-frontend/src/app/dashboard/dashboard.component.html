@@ -1,0 +1,25 @@
+<section class="dashboard" *ngIf="dashboard; else loading">
+  <h2>Tableau de bord</h2>
+  <p>Bienvenue, <strong>{{ dashboard.username }}</strong> !</p>
+
+  <div class="cards">
+    <article class="card">
+      <span class="label">Application</span>
+      <strong>{{ dashboard.applicationName }}</strong>
+    </article>
+    <article class="card">
+      <span class="label">Utilisateurs</span>
+      <strong>{{ dashboard.totalUsers }}</strong>
+    </article>
+    <article class="card">
+      <span class="label">Rôle</span>
+      <strong>{{ dashboard.isAdmin ? 'Administrateur' : 'Utilisateur' }}</strong>
+    </article>
+  </div>
+</section>
+
+<ng-template #loading>
+  <p>Chargement du tableau de bord...</p>
+</ng-template>
+
+<div *ngIf="error" class="error">{{ error }}</div>
