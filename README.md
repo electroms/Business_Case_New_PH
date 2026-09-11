@@ -15,7 +15,7 @@ Ce projet met en place :
 
 ## Stack technique
 
-### Backend
+### Démarrage du backend
 
 - Java 21
 - Spring Boot 3.5.x
@@ -97,7 +97,7 @@ Sous PowerShell :
 ./mvnw.cmd spring-boot:run
 ```
 
-### Frontend
+### Lancement du frontend
 
 ```bash
 cd businesscase-frontend
@@ -201,13 +201,13 @@ Business_Case_New_PH/
 
 ## Vérification et tests
 
-### Backend
+### Backend (tests)
 
 ```bash
 ./mvnw -q test
 ```
 
-### Frontend
+### Frontend (build)
 
 ```bash
 cd businesscase-frontend
