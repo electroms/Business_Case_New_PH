@@ -1,6 +1,6 @@
 # Business Case Spring
 
-Application web full-stack développée avec Spring Boot et Angular pour gérer une authentification sécurisée et un espace d'administration protégé.
+Application web full-stack développée avec Spring Boot et Angular pour la gestion d'utilisateurs, d'authentification et d'administration sécurisée.
 
 ## Vue d'ensemble
 
@@ -10,12 +10,13 @@ Ce projet met en place :
 - un frontend Angular 22 en composants standalone
 - une authentification JWT stateless avec Spring Security
 - des utilisateurs persistés en base de données avec rôles et activation
-- un dashboard protégé et une zone admin pour gérer les comptes
+- un dashboard protégé et une zone d'administration pour gérer les comptes
 - un profil de développement local (H2) et un profil production (MySQL + variables d'environnement)
+- des protections de sécurité renforcées côté backend : validation des secrets JWT, hachage BCrypt, règles d'accès strictes, politique de mots de passe plus forte et blocage des tentatives de connexion répétées
 
 ## Stack technique
 
-### Démarrage du backend
+### Backend
 
 - Java 21
 - Spring Boot 3.5.x
@@ -24,7 +25,7 @@ Ce projet met en place :
 - Spring Security
 - OAuth2 Resource Server
 - JWT avec Nimbus JOSE
-- H2 pour le développement et les tests
+- H2 pour les tests et le développement
 - MySQL pour la production
 
 ### Frontend
@@ -39,9 +40,9 @@ Ce projet met en place :
 ## Fonctionnalités implémentées
 
 - connexion utilisateur avec génération de JWT
-- récupération du profil connecté et du dashboard
-- protection des routes côté frontend selon l'état de connexion et le rôle
-- blocage d'accès aux écrans sensibles si l'utilisateur n'est pas autorisé
+- validation des identifiants via Spring Security
+- protection des routes côté backend via politique HTTP et annotations `@PreAuthorize`
+- dashboard connecté avec informations utilisateur et statut admin
 - écran d'administration pour :
   - lister les utilisateurs
   - créer un utilisateur
@@ -50,7 +51,9 @@ Ce projet met en place :
   - l'auto-suppression d'un compte
   - la suppression du dernier administrateur
   - la création d'un compte déjà existant
-  - l'ajout de rôles invalides ou de mot de passe faibles
+  - l'ajout de rôles invalides
+  - l'usage de mots de passe trop faibles ou trop communs
+- protection contre les attaques de force brute sur le point d'entrée `/api/auth/login`
 
 ## Prérequis
 
@@ -59,7 +62,7 @@ Ce projet met en place :
 - Node.js 22+
 - npm 10+
 - MySQL pour le profil production
-- optionnel : environnement Debian/Linux pour le service système
+- optionnel : environnement Linux/Debian pour le service système
 
 ## Installation locale
 
@@ -97,18 +100,18 @@ Sous PowerShell :
 ./mvnw.cmd spring-boot:run
 ```
 
-### Lancement du frontend
+### Frontend
 
 ```bash
 cd businesscase-frontend
 npm start
 ```
 
-Le frontend est généralement servi sur `http://localhost:4200`.
+Le frontend est servi par défaut sur `http://localhost:4200`.
 
 ## Configuration et environnement
 
-Le projet utilise des variables d'environnement pour rendre le lancement local simple et sécuriser la production.
+Le projet utilise des variables d'environnement pour sécuriser la production et garder une configuration locale simple.
 
 ### Fichiers de configuration
 
@@ -157,14 +160,18 @@ Le flux fonctionne ainsi :
 2. le backend valide les identifiants et délivre un JWT signé
 3. le frontend enregistre le token
 4. chaque requête passe le token dans le header `Authorization`
-5. les contrôles d'accès sont vérifiés sur les rôles côté backend et côté frontend
+5. les contrôles d'accès sont vérifiés sur les rôles côté backend
 
-Les protections actuelles couvrent :
+### Sécurités actuellement mises en place
 
-- aucune session côté serveur pour le mode stateless
+- sessions serveur désactivées pour un mode stateless JWT
+- validation de la clé JWT au démarrage
+- hachage des mots de passe avec BCrypt
 - contrôle strict des origines CORS
-- rôles autorisés `ROLE_USER` et `ROLE_ADMIN`
-- vérification au moment de la création et suppression des comptes
+- protection des routes sensibles via `@PreAuthorize("hasRole('ADMIN')")`
+- HSTS, referrer policy et `frameOptions` réduits à un comportement plus sûr
+- blocage temporaire des tentatives de connexion répétées sur `/api/auth/login`
+- mots de passe exigent un niveau minimum de complexité et refusent les valeurs trop communes
 
 ## Administration des utilisateurs
 
@@ -201,13 +208,13 @@ Business_Case_New_PH/
 
 ## Vérification et tests
 
-### Backend (tests)
+### Backend
 
 ```bash
 ./mvnw -q test
 ```
 
-Y### Frontend (build)
+### Frontend
 
 ```bash
 cd businesscase-frontend
@@ -236,28 +243,30 @@ Les scripts de lancement sont disponibles dans :
 - sécuriser la clé JWT en environnement réel
 - vérifier les règles CORS avant mise en production
 - conserver au moins un administrateur actif dans la base
-- stocker les secrets dans un gestionnaire de secrets ou un service cloud dédié
+- stocker les secrets dans un gestionnaire de secrets ou dans un service cloud dédié
 - utiliser un compte système dédié pour l'exécution de l'application
+- maintenir les dépendances à jour et relancer le scan OWASP régulièrement
+- surveiller les échecs d'authentification et les actions admin via logs centralisés
+
+## État de sécurité actuel
+
+Le code est dans une configuration de sécurité fonctionnelle pour un projet de type MVP / application interne, avec des protections sérieuses sur :
+
+- l'authentification JWT
+- le hachage des mots de passe
+- les accès administrateurs
+- la validation des secrets et des rôles
+
+Les points à surveiller avant mise en production stricte :
+
+- ajout d'un mécanisme de rate limiting plus robuste si nécessaire
+- renforcement de la validation DTO avec annotations Bean Validation
+- centralisation complète des logs de sécurité et de l'audit des actions sensibles
+- revue régulière des dépendances et du scan de vulnérabilités
 
 ## Auteur
 
 Projet Business Case – Spring Boot + Angular.
-
-- do not expose raw Spring Boot port 8080 directly to the internet
-- keep a regular backup strategy for MySQL and uploaded data
-
-### Frontend in development mode
-
-```bash
-cd businesscase-frontend
-npm start
-```
-
-The Angular app runs on `http://localhost:4200` and proxies `/api/**` requests to the backend on `http://localhost:8080`.
-
-## Authentication
-
-The backend uses stateless JWT authentication with Spring Security.
 
 ### Key components
 
