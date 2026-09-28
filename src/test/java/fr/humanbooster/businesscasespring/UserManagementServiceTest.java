@@ -33,17 +33,31 @@ class UserManagementServiceTest {
     void createUserShouldPersistAndHashPassword() {
         AppUser admin = new AppUser();
         admin.setUsername("admin");
-        admin.setPassword(passwordEncoder.encode("admin123"));
+        admin.setPassword(passwordEncoder.encode("Admin!Pass123"));
         admin.setRoles("ROLE_ADMIN,ROLE_USER");
         admin.setEnabled(true);
         appUserRepository.save(admin);
 
-        AppUser created = userManagementService.createUser("alice", "secret123", "ROLE_USER", true, "admin");
+        AppUser created = userManagementService.createUser("alice", "StrongPass!2026", "ROLE_USER", true, "admin");
 
         assertThat(created.getUsername()).isEqualTo("alice");
-        assertThat(created.getPassword()).isNotEqualTo("secret123");
+        assertThat(created.getPassword()).isNotEqualTo("StrongPass!2026");
         assertThat(created.getRoles()).contains("ROLE_USER");
         assertThat(appUserRepository.findByUsername("alice")).isPresent();
+    }
+
+    @Test
+    void weakPasswordShouldBeRejected() {
+        AppUser admin = new AppUser();
+        admin.setUsername("admin");
+        admin.setPassword(passwordEncoder.encode("Admin!Pass123"));
+        admin.setRoles("ROLE_ADMIN,ROLE_USER");
+        admin.setEnabled(true);
+        appUserRepository.save(admin);
+
+        assertThatThrownBy(() -> userManagementService.createUser("bob", "password", "ROLE_USER", true, "admin"))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("complexe");
     }
 
     @Test

@@ -14,6 +14,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.Instant;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Exposes the authentication endpoint used by the Angular frontend.
@@ -41,6 +44,11 @@ public class AuthController {
     // Lifetime of the token in milliseconds. This value is usually controlled by the environment.
     private final long expirationMs;
 
+    // Basic in-memory throttling to slow credential stuffing attempts.
+    private final Map<String, Long> failedLoginTimestamps = new ConcurrentHashMap<>();
+    private static final long LOCKOUT_WINDOW_MS = 60000L;
+    private static final int MAX_FAILED_ATTEMPTS = 5;
+
     public AuthController(AuthenticationManager authenticationManager,
                           JwtEncoder jwtEncoder,
                           @Value("${app.jwt.expiration-ms:3600000}") long expirationMs) {
@@ -57,16 +65,34 @@ public class AuthController {
      */
     @PostMapping("/login")
     public AuthResponse login(@RequestBody LoginRequest request) {
+        String username = request.username() == null ? "" : request.username().trim();
+        if (username.isBlank()) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                org.springframework.http.HttpStatus.UNAUTHORIZED,
+                "Identifiants invalides"
+            );
+        }
+
+        long now = System.currentTimeMillis();
+        Long lastFailure = failedLoginTimestamps.get(username);
+        if (lastFailure != null && (now - lastFailure) < LOCKOUT_WINDOW_MS) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                org.springframework.http.HttpStatus.TOO_MANY_REQUESTS,
+                "Trop de tentatives. Réessayez plus tard."
+            );
+        }
+
         try {
             Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.username(), request.password())
+                new UsernamePasswordAuthenticationToken(username, request.password())
             );
+            failedLoginTimestamps.remove(username);
 
-            Instant now = Instant.now();
+            Instant nowInstant = Instant.now();
             JwtClaimsSet claims = JwtClaimsSet.builder()
                 .issuer("businesscase-spring")
-                .issuedAt(now)
-                .expiresAt(now.plusSeconds(expirationMs / 1000))
+                .issuedAt(nowInstant)
+                .expiresAt(nowInstant.plusSeconds(expirationMs / 1000))
                 .subject(authentication.getName())
                 .claim("roles", authentication.getAuthorities().stream().map(a -> a.getAuthority()).toList())
                 .build();
@@ -74,6 +100,14 @@ public class AuthController {
             String token = jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
             return new AuthResponse(token, "Bearer", expirationMs);
         } catch (AuthenticationException ex) {
+            long failures = failedLoginTimestamps.getOrDefault(username, 0L);
+            failedLoginTimestamps.put(username, now);
+            if (failures >= MAX_FAILED_ATTEMPTS) {
+                throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.TOO_MANY_REQUESTS,
+                    "Trop de tentatives. Réessayez plus tard."
+                );
+            }
             throw new org.springframework.web.server.ResponseStatusException(
                 org.springframework.http.HttpStatus.UNAUTHORIZED,
                 "Identifiants invalides"

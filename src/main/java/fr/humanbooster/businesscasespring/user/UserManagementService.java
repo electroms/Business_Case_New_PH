@@ -6,6 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class UserManagementService {
@@ -75,8 +76,26 @@ public class UserManagementService {
     }
 
     private void validatePassword(String rawPassword) {
-        if (rawPassword == null || rawPassword.length() < 6) {
-            throw new IllegalArgumentException("Le mot de passe doit contenir au moins 6 caractères.");
+        if (rawPassword == null || rawPassword.length() < 12) {
+            throw new IllegalArgumentException("Le mot de passe doit contenir au moins 12 caractères et être suffisamment complexe.");
+        }
+
+        boolean hasUpper = rawPassword.chars().anyMatch(Character::isUpperCase);
+        boolean hasLower = rawPassword.chars().anyMatch(Character::isLowerCase);
+        boolean hasDigit = rawPassword.chars().anyMatch(Character::isDigit);
+        boolean hasSpecial = rawPassword.chars().anyMatch(ch -> !Character.isLetterOrDigit(ch));
+
+        if (!(hasUpper && hasLower && hasDigit && hasSpecial)) {
+            throw new IllegalArgumentException("Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre et un caractère spécial.");
+        }
+
+        Set<String> commonPasswords = Set.of(
+            "password", "Password123", "admin123", "qwerty123", "welcome123",
+            "changeme", "letmein", "secret123", "azerty123"
+        );
+
+        if (commonPasswords.contains(rawPassword)) {
+            throw new IllegalArgumentException("Le mot de passe est trop commun.");
         }
     }
 
