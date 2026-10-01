@@ -16,7 +16,7 @@ Ce projet met en place :
 
 ## Stack technique
 
-### Backend
+### Backend (stack)
 
 - Java 21
 - Spring Boot 3.5.x
@@ -28,7 +28,7 @@ Ce projet met en place :
 - H2 pour les tests et le développement
 - MySQL pour la production
 
-### Frontend
+### Lancer le frontend
 
 - Angular 22
 - TypeScript
@@ -88,7 +88,7 @@ npm install
 
 ## Démarrage
 
-### Backend
+### Lancer le backend
 
 ```bash
 ./mvnw spring-boot:run
@@ -100,7 +100,7 @@ Sous PowerShell :
 ./mvnw.cmd spring-boot:run
 ```
 
-### Frontend
+### Frontend (démarrage)
 
 ```bash
 cd businesscase-frontend
@@ -214,7 +214,7 @@ Business_Case_New_PH/
 ./mvnw -q test
 ```
 
-### Frontend
+### Frontend (build)
 
 ```bash
 cd businesscase-frontend
