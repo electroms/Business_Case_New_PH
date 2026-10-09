@@ -63,10 +63,14 @@ if (Test-Path -LiteralPath $resolvedEnvFile) {
 
 $env:SPRING_PROFILES_ACTIVE = $SpringProfile
 if (-not $env:SERVER_PORT) { $env:SERVER_PORT = "8080" }
-if (-not $env:APP_ADMIN_USERNAME) { $env:APP_ADMIN_USERNAME = "prodadmin" }
-if (-not $env:APP_ADMIN_PASSWORD) { $env:APP_ADMIN_PASSWORD = "CHANGE_ME_STRONG_ADMIN_PASSWORD" }
 if (-not $env:APP_ADMIN_ROLES) { $env:APP_ADMIN_ROLES = "ROLE_ADMIN,ROLE_USER" }
 if (-not $env:JWT_SECRET) { throw "JWT_SECRET is required. Fill the .env file or export it before launching the app." }
+if (-not $env:APP_ADMIN_USERNAME -or -not $env:APP_ADMIN_PASSWORD) {
+    throw "APP_ADMIN_USERNAME and APP_ADMIN_PASSWORD are required."
+}
+if ($env:APP_ADMIN_PASSWORD.StartsWith("CHANGE_ME_")) {
+    throw "APP_ADMIN_PASSWORD must be replaced with a real secret."
+}
 if (-not $env:JWT_EXPIRATION_MS) { $env:JWT_EXPIRATION_MS = "3600000" }
 if (-not $env:APP_CORS_ALLOWED_ORIGINS) { $env:APP_CORS_ALLOWED_ORIGINS = "https://your-domain.example" }
 if (-not $env:DB_URL) { throw "DB_URL is required. Fill the .env file or export it before launching the app." }

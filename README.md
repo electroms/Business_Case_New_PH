@@ -212,6 +212,14 @@ Business_Case_New_PH/
 
 ```bash
 ./mvnw -q test
+./mvnw -q verify
+```
+
+Le profil par défaut ne contient plus de valeurs de sécurité de secours. Pour un
+démarrage local, activer explicitement le profil `dev` :
+
+```bash
+./mvnw -q spring-boot:run -Dspring-boot.run.profiles=dev
 ```
 
 ### Frontend (build)
@@ -219,7 +227,12 @@ Business_Case_New_PH/
 ```bash
 cd businesscase-frontend
 npm run build
+npm audit
 ```
+
+Le verrouillage des dépendances frontend inclut les correctifs d'audit npm. Le
+scan OWASP Maven est exécuté automatiquement pendant `verify` et fait échouer
+le build au-dessus du seuil CVSS configuré.
 
 ## Déploiement production
 

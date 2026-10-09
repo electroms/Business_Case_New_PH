@@ -41,8 +41,6 @@ load_env_file "$ENV_FILE"
 
 export SPRING_PROFILES_ACTIVE="${SPRING_PROFILE}"
 : "${SERVER_PORT:=8080}"
-: "${APP_ADMIN_USERNAME:=prodadmin}"
-: "${APP_ADMIN_PASSWORD:=CHANGE_ME_STRONG_ADMIN_PASSWORD}"
 : "${APP_ADMIN_ROLES:=ROLE_ADMIN,ROLE_USER}"
 : "${JWT_EXPIRATION_MS:=3600000}"
 : "${APP_CORS_ALLOWED_ORIGINS:=https://your-domain.example}"
@@ -52,6 +50,16 @@ export SPRING_PROFILES_ACTIVE="${SPRING_PROFILE}"
 
 if [[ -z "${JWT_SECRET:-}" ]]; then
   echo "[ERROR] JWT_SECRET is required. Set it in .env or export it before starting the app." >&2
+  exit 1
+fi
+
+if [[ -z "${APP_ADMIN_USERNAME:-}" || -z "${APP_ADMIN_PASSWORD:-}" ]]; then
+  echo "[ERROR] APP_ADMIN_USERNAME and APP_ADMIN_PASSWORD are required." >&2
+  exit 1
+fi
+
+if [[ "${APP_ADMIN_PASSWORD}" == CHANGE_ME_* ]]; then
+  echo "[ERROR] APP_ADMIN_PASSWORD must be replaced with a real secret." >&2
   exit 1
 fi
 
