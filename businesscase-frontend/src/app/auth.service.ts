@@ -11,30 +11,28 @@ interface TokenResponse {
 /**
  * Centralizes authentication state in the browser.
  *
- * This service keeps the JWT in sessionStorage, exposes the decoded roles,
- * and provides helper methods used by guards and authenticated pages.
+ * The JWT stays in memory only to reduce exposure to XSS and browser storage leakage.
  */
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private readonly tokenKey = 'businesscase.accessToken';
   private token = '';
 
-  constructor(private http: HttpClient) {
-    this.token = sessionStorage.getItem(this.tokenKey) ?? '';
+  constructor(private http: HttpClient) {}
+
+  setToken(token: string): void {
+    this.token = token;
   }
 
   login(username: string, password: string): Observable<TokenResponse> {
     return this.http.post<TokenResponse>('/api/auth/login', { username, password }).pipe(
       tap(response => {
         this.token = response.accessToken;
-        sessionStorage.setItem(this.tokenKey, response.accessToken);
       })
     );
   }
 
   clearCredentials() {
     this.token = '';
-    sessionStorage.removeItem(this.tokenKey);
   }
 
   getAuthorizationHeader(): string | null {
