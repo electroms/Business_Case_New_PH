@@ -1,47 +1,47 @@
 # Business Case Spring
 
-Application web full-stack développée avec Spring Boot et Angular pour la gestion d'utilisateurs, d'authentification et d'administration sécurisée.
+Application web full-stack développée avec Java / Spring Boot et Angular pour la gestion des utilisateurs, l'authentification et l'administration sécurisée.
 
 ## Vue d'ensemble
 
 Ce projet met en place :
 
-- un backend Java 21 avec Spring Boot 3.5.x
+- un backend Java 21 avec Spring Boot 4.0.8
 - un frontend Angular 22 en composants standalone
 - une authentification JWT stateless avec Spring Security
-- des utilisateurs persistés en base de données avec rôles et activation
+- des utilisateurs persistés en base de données avec rôles et accès administrateur
 - un dashboard protégé et une zone d'administration pour gérer les comptes
 - un profil de développement local (H2) et un profil production (MySQL + variables d'environnement)
-- des protections de sécurité renforcées côté backend : validation des secrets JWT, hachage BCrypt, règles d'accès strictes, politique de mots de passe plus forte et blocage des tentatives de connexion répétées
+- des protections de sécurité renforcées côté backend et côté frontend
 
 ## Stack technique
 
-### Backend (stack)
+### Backend
 
 - Java 21
-- Spring Boot 3.5.x
+- Spring Boot 4.0.8
 - Spring Web
 - Spring Data JPA
 - Spring Security
 - OAuth2 Resource Server
 - JWT avec Nimbus JOSE
-- H2 pour les tests et le développement
+- H2 pour le développement et les tests
 - MySQL pour la production
 
-### Lancer le frontend
+### Frontend
 
 - Angular 22
 - TypeScript
 - RxJS
 - Standalone components
-- JWT stocké dans le navigateur
+- JWT conservé uniquement en mémoire côté navigateur
 - routes protégées selon les rôles `ROLE_USER` et `ROLE_ADMIN`
 
 ## Fonctionnalités implémentées
 
-- connexion utilisateur avec génération de JWT
+- connexion utilisateur avec génération d'un JWT
 - validation des identifiants via Spring Security
-- protection des routes côté backend via politique HTTP et annotations `@PreAuthorize`
+- protection des routes côté backend via `@PreAuthorize` et règles HTTP
 - dashboard connecté avec informations utilisateur et statut admin
 - écran d'administration pour :
   - lister les utilisateurs
@@ -53,7 +53,7 @@ Ce projet met en place :
   - la création d'un compte déjà existant
   - l'ajout de rôles invalides
   - l'usage de mots de passe trop faibles ou trop communs
-- protection contre les attaques de force brute sur le point d'entrée `/api/auth/login`
+- blocage temporaire des tentatives de connexion répétées sur `/api/auth/login`
 
 ## Prérequis
 
@@ -62,7 +62,7 @@ Ce projet met en place :
 - Node.js 22+
 - npm 10+
 - MySQL pour le profil production
-- optionnel : environnement Linux/Debian pour le service système
+- environnement Linux/Debian pour le service système (optionnel)
 
 ## Installation locale
 
@@ -88,7 +88,7 @@ npm install
 
 ## Démarrage
 
-### Lancer le backend
+### Backend
 
 ```bash
 ./mvnw spring-boot:run
@@ -100,7 +100,7 @@ Sous PowerShell :
 ./mvnw.cmd spring-boot:run
 ```
 
-### Frontend (démarrage)
+### Frontend
 
 ```bash
 cd businesscase-frontend
@@ -116,6 +116,7 @@ Le projet utilise des variables d'environnement pour sécuriser la production et
 ### Fichiers de configuration
 
 - [src/main/resources/application.properties](src/main/resources/application.properties)
+- [src/main/resources/application-dev.properties](src/main/resources/application-dev.properties)
 - [src/main/resources/application-prod.properties](src/main/resources/application-prod.properties)
 - [prod.env.example](prod.env.example)
 - [start-prod.sh](start-prod.sh)
@@ -149,29 +150,31 @@ HIBERNATE_DIALECT=org.hibernate.dialect.MySQLDialect
 
 ## Authentification et sécurité
 
-La configuration de sécurité est centralisée dans :
+Les points d'entrée de sécurité sont centralisés dans :
 
 - [src/main/java/fr/humanbooster/businesscasespring/SecurityConfig.java](src/main/java/fr/humanbooster/businesscasespring/SecurityConfig.java)
 - [src/main/java/fr/humanbooster/businesscasespring/api/AuthController.java](src/main/java/fr/humanbooster/businesscasespring/api/AuthController.java)
+- [businesscase-frontend/src/app/auth.service.ts](businesscase-frontend/src/app/auth.service.ts)
 
 Le flux fonctionne ainsi :
 
 1. l'utilisateur se connecte via le backend
 2. le backend valide les identifiants et délivre un JWT signé
-3. le frontend enregistre le token
+3. le frontend conserve le token en mémoire uniquement
 4. chaque requête passe le token dans le header `Authorization`
-5. les contrôles d'accès sont vérifiés sur les rôles côté backend
+5. les contrôles d'accès sont vérifiés côté backend sur les rôles utilisateur
 
 ### Sécurités actuellement mises en place
 
 - sessions serveur désactivées pour un mode stateless JWT
-- validation de la clé JWT au démarrage
+- validation du secret JWT au démarrage
 - hachage des mots de passe avec BCrypt
 - contrôle strict des origines CORS
 - protection des routes sensibles via `@PreAuthorize("hasRole('ADMIN')")`
-- HSTS, referrer policy et `frameOptions` réduits à un comportement plus sûr
+- HSTS, referrer policy et `frameOptions` renforcés
 - blocage temporaire des tentatives de connexion répétées sur `/api/auth/login`
-- mots de passe exigent un niveau minimum de complexité et refusent les valeurs trop communes
+- mot de passe soumis à une politique de complexité minimale et à l'interdiction des valeurs trop communes
+- JWT non persisté dans `sessionStorage`/`localStorage` pour limiter l'exposition en cas de XSS
 
 ## Administration des utilisateurs
 
@@ -203,7 +206,8 @@ Business_Case_New_PH/
 ├── start-prod.ps1                # démarrage production Windows
 ├── businesscase.service          # service systemd Linux
 ├── .gitignore                    # règles de versionnement
-└── .env                          # variables locales non versionnées (à créer localement)
+├── .env                          # variables locales non versionnées (à créer localement)
+└── target/                       # artefacts Maven / rapports OWASP (généré)
 ```
 
 ## Vérification et tests
@@ -215,14 +219,13 @@ Business_Case_New_PH/
 ./mvnw -q verify
 ```
 
-Le profil par défaut ne contient plus de valeurs de sécurité de secours. Pour un
-démarrage local, activer explicitement le profil `dev` :
+Pour démarrer localement avec le profil `dev` :
 
 ```bash
 ./mvnw -q spring-boot:run -Dspring-boot.run.profiles=dev
 ```
 
-### Frontend (build)
+### Frontend
 
 ```bash
 cd businesscase-frontend
@@ -230,9 +233,7 @@ npm run build
 npm audit
 ```
 
-Le verrouillage des dépendances frontend inclut les correctifs d'audit npm. Le
-scan OWASP Maven est exécuté automatiquement pendant `verify` et fait échouer
-le build au-dessus du seuil CVSS configuré.
+Le scan OWASP Maven est exécuté pendant la phase `verify` et peut faire échouer le build si des dépendances dépassent le seuil de criticité configuré. Le frontend est surveillé côté audit npm pour les vulnérabilités connues.
 
 ## Déploiement production
 
@@ -256,7 +257,7 @@ Les scripts de lancement sont disponibles dans :
 - sécuriser la clé JWT en environnement réel
 - vérifier les règles CORS avant mise en production
 - conserver au moins un administrateur actif dans la base
-- stocker les secrets dans un gestionnaire de secrets ou dans un service cloud dédié
+- stocker les secrets dans un gestionnaire de secrets ou un service cloud dédié
 - utiliser un compte système dédié pour l'exécution de l'application
 - maintenir les dépendances à jour et relancer le scan OWASP régulièrement
 - surveiller les échecs d'authentification et les actions admin via logs centralisés
@@ -269,6 +270,7 @@ Le code est dans une configuration de sécurité fonctionnelle pour un projet de
 - le hachage des mots de passe
 - les accès administrateurs
 - la validation des secrets et des rôles
+- la réduction de la surface d'exposition côté navigateur
 
 Les points à surveiller avant mise en production stricte :
 
@@ -277,73 +279,24 @@ Les points à surveiller avant mise en production stricte :
 - centralisation complète des logs de sécurité et de l'audit des actions sensibles
 - revue régulière des dépendances et du scan de vulnérabilités
 
+## Notes et précautions
+
+- H2 est réservé au développement et aux tests.
+- En production, `DB_*` variables doivent être définies et MySQL doit être accessible.
+- Le fichier `.env` doit rester local et ne doit pas être commit.
+- Pour un déploiement réel, il est recommandé d'utiliser un gestionnaire de secrets tel que Azure Key Vault, Vault ou Docker secrets.
+- Le dépôt ne contient ni configuration Apache2, ni service Apache, ni Dockerfile Apache ; toute mise à jour Apache2 correspond à un composant système ou à un autre environnement, hors périmètre de ce projet.
+
+## État du projet
+
+Le projet est prêt pour un environnement serveur Debian Linux avec :
+
+- un backend Java 21 / Spring Boot 4 compatible Debian 12/13
+- une configuration de production sécurisée
+- des scripts de démarrage Linux/Windows
+- un profil `prod` renforcé
+- un frontend Angular 22
+
 ## Auteur
 
 Projet Business Case – Spring Boot + Angular.
-
-### Key components
-
-- `SecurityConfig`: JWT resource server setup and stateless security configuration
-- `AuthController`: login endpoint and JWT issuance
-- `AppUser`: persisted user entity in JPA
-- `AppUserRepository`: repository for user lookup
-- `DatabaseUserDetailsService`: converts persisted users into Spring `UserDetails`
-- `AppUserInitializer`: ensures the admin user exists at startup
-
-### Authentication flow
-
-1. The user submits credentials to the backend.
-2. The backend validates the username and password.
-3. The backend issues a JWT signed with `JWT_SECRET`.
-4. The frontend stores the token and sends it in the `Authorization: Bearer ...` header.
-
-## Tests
-
-### Backend tests
-
-```bash
-./mvnw test
-```
-
-### Frontend tests
-
-```bash
-cd businesscase-frontend
-npm test
-```
-
-## Production hardening
-
-The project has been prepared for a safer production setup:
-
-- user identities stored in the database instead of memory
-- secrets externalized through environment variables
-- stricter `prod` configuration with MySQL JDBC settings
-- required `JWT_SECRET` with minimum length validation
-- explicit CORS configuration for production origins
-- HTTP security headers hardened with HSTS and referrer policy restrictions
-- cleaner production logging
-- disabled stack traces in production HTTP error responses
-- no hardcoded sensitive credentials in default config files
-- local environment files protected by Git ignore rules
-
-## Notes and precautions
-
-- H2 is reserved for test execution only.
-- In production, `DB_*` variables must be set and MySQL must be reachable.
-- The `.env` file must stay local and should not be committed to source control.
-- For real deployment, consider using a secret manager such as Azure Key Vault, Vault, or Docker secrets.
-
-## Current project status
-
-The project is adapted for a Debian Linux server environment with:
-
-- a Java 21 / Spring Boot 3.5.x backend compatible with Debian 12/13
-- a production-ready environment configuration
-- a Linux startup script and systemd service
-- a hardened production profile
-- an Angular 22 frontend
-
-## Author
-
-Project maintained for the Business Case application.
