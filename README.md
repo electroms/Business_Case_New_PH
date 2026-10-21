@@ -219,6 +219,24 @@ Business_Case_New_PH/
 ./mvnw -q verify
 ```
 
+Pour valider le scan OWASP Dependency-Check avec la base NVD et obtenir un état de vulnérabilité fiable, il faut injecter la clé API avant l’exécution :
+
+```powershell
+cd "C:\Users\pierr\OneDrive\Documents Pierre-Henry\Electroms\Workspace\Business_Case_New_PH"
+$env:NVD_API_KEY="COLLER_VOTRE_CLE_NVD_ICI"
+.\mvnw.cmd -DskipTests verify
+```
+
+Commande alternative ciblée sur le scan OWASP uniquement :
+
+```powershell
+cd "C:\Users\pierr\OneDrive\Documents Pierre-Henry\Electroms\Workspace\Business_Case_New_PH"
+$env:NVD_API_KEY="COLLER_VOTRE_CLE_NVD_ICI"
+.\mvnw.cmd -DskipTests dependency-check:check
+```
+
+> Sans clé NVD valide, le plugin OWASP peut échouer avec `401 Unauthorized` lors de la récupération des rapports de composants, même si le projet compile correctement.
+
 Pour démarrer localement avec le profil `dev` :
 
 ```bash
