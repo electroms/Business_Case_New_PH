@@ -88,7 +88,7 @@ npm install
 
 ## Démarrage
 
-### Backend
+### Démarrage du backend
 
 ```bash
 ./mvnw spring-boot:run
@@ -100,7 +100,7 @@ Sous PowerShell :
 ./mvnw.cmd spring-boot:run
 ```
 
-### Frontend
+### Démarrage du frontend
 
 ```bash
 cd businesscase-frontend
@@ -212,7 +212,7 @@ Business_Case_New_PH/
 
 ## Vérification et tests
 
-### Backend
+### Tests du backend
 
 ```bash
 ./mvnw -q test
@@ -243,7 +243,7 @@ Pour démarrer localement avec le profil `dev` :
 ./mvnw -q spring-boot:run -Dspring-boot.run.profiles=dev
 ```
 
-### Frontend
+### Tests du frontend
 
 ```bash
 cd businesscase-frontend
